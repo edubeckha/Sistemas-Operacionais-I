@@ -15,7 +15,12 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Eduardo Beckhauser");
 
 
-
+//Declaracao de funcoes
+static int copen(struct inode *i,struct file *f);
+static int crelease(struct inode *i,struct file *f);
+static ssize_t cwrite(struct file *f,char *buf,size_t count,loff_t *f_pos);
+static ssize_t cread(struct file *f,char *buf,size_t count,loff_t *f_pos);
+//Fim de declaracao de funcoes
 
 //Declaracao de variaveis
 //Inteiro que verifica se o device foi registrado com sucesso
@@ -32,14 +37,18 @@ char* mensagem;
 unsigned int majorNumber = 45;
 
 
+/*Struct de operacoes que poderao ser executadas pelo driver*/
 static struct file_operations fops={
 
-
+	.open = copen,
+	.release = crelease,
+	.read = cread,
+	.write = cwrite,
 };
+
 
 //Fim de Declaracao de variaveis
 static int __init iniciar(void){
-
 	/*Register_chrdev - registra um major number para character drivers, levando um major, um nome e uma strucs de operacoes como parametro*/
 	resultado = register_chrdev(majorNumber, "Comunicacao", &fops);
 	
@@ -50,11 +59,39 @@ static int __init iniciar(void){
 	}
 
 	/*Printk - mensagens de I/O com o kernel*/
-	printk(KERN_INFO "Driver sendo inicializado");
+	printk(KERN_INFO "Driver sendo inicializado \n");
 
 return 0;
 }
 
+
+/*Funcao responsavel por abrir um dispositivo como um arquivo*/
+static int copen(struct inode *i,struct file *f){
+printk(KERN_INFO "Driver sendo aberto");
+return 0; // success
+}
+
+
+
+/*Funcao responsavel por ler de um dispositivo*/
+static ssize_t cread(struct file *f,char *buf,size_t count,loff_t *f_pos){
+return 0;
+}
+
+
+/*Funcao responsavel por escrever em um dispositivo*/
+static ssize_t cwrite(struct file *f,char *buf,size_t count,loff_t *f_pos){}
+
+
+
+/*Funcao responsavel por dar um release no dispositivo*/
+static int crelease(struct inode *i,struct file *f)
+{
+return 0; // success
+}
+
+/*Funcao responsavel por desalocar memoria de tudo o que foi
+alocano no __init, sendo chamado na retirada do modulo do kernel*/
 static void __exit sair(void){
 
 	printk(KERN_INFO "O driver foi encerrado.\n");
@@ -62,14 +99,6 @@ static void __exit sair(void){
 	unregister_chrdev(majorNumber, "Comunicacao");
 
 }
-
-
-
-
-
-
-
-
 
 //Macro para a definicao da funcao de inicializar o driver
 module_init(iniciar);
