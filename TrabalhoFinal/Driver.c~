@@ -32,7 +32,10 @@ char* mensagem;
 unsigned int majorNumber = 45;
 
 
-static struct file_operations fops={};
+static struct file_operations fops={
+
+
+};
 
 //Fim de Declaracao de variaveis
 static int __init iniciar(void){
@@ -40,6 +43,12 @@ static int __init iniciar(void){
 	/*Register_chrdev - registra um major number para character drivers, levando um major, um nome e uma strucs de operacoes como parametro*/
 	resultado = register_chrdev(majorNumber, "Comunicacao", &fops);
 	
+	if(result < 0)
+	{
+	printk(KERN_INFO "Nao foi possivel obter o major number");
+	return resultado;
+	}
+
 	/*Printk - mensagens de I/O com o kernel*/
 	printk(KERN_INFO "Driver sendo inicializado");
 
@@ -50,7 +59,7 @@ static void __exit sair(void){
 
 	printk(KERN_INFO "O driver foi encerrado.\n");
 	/*Funcao que retira o dispositivo*/
-	unregister_chrdev(majorNumber, "Comunicacao",0);
+	unregister_chrdev(majorNumber, "Comunicacao");
 
 }
 
