@@ -6,7 +6,7 @@ main ( ) {
         int i,fd;
         char ch, write_buf[100], read_buf[100];
 
-        fd = open("/dev/disp2", O_RDWR);
+        fd = open("/dev/char_arr", O_RDWR);
 
         if (fd == -1)
         {
