@@ -43,7 +43,7 @@ static struct file_operations fops={
 	.open = copen,
 	.release = crelease,
 	.read = cread,
-	.write = cwrite,
+	.write = cwrite
 };
 
 
@@ -57,7 +57,7 @@ static int __init iniciar(void){
 	printk(KERN_INFO "Nao foi possivel obter o major number");
 	return resultado;
 	}
-
+ 
 	/*Printk - mensagens de I/O com o kernel*/
 	printk(KERN_INFO "Driver sendo inicializado \n");
 
@@ -80,7 +80,7 @@ return 0;
 
 
 /*Funcao responsavel por escrever em um dispositivo*/
-static ssize_t cwrite(struct file *f,char *buf,size_t count,loff_t *f_pos){}
+static ssize_t cwrite(struct file *f,char *buf,size_t count,loff_t *f_pos){return 0;}
 
 
 
