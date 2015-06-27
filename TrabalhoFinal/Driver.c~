@@ -7,6 +7,7 @@
 #include <linux/types.h> 
 #include <linux/proc_fs.h>
 #include <linux/fcntl.h> 
+#include <asm/uaccess.h>
 
 //Macro responsavel pela licenca do driver
 MODULE_LICENSE("GPL");
@@ -47,6 +48,7 @@ static struct file_operations fops={
 };
 
 
+
 //Fim de Declaracao de variaveis
 static int __init iniciar(void){
 	/*Register_chrdev - registra um major number para character drivers, levando um major, um nome e uma strucs de operacoes como parametro*/
@@ -57,7 +59,7 @@ static int __init iniciar(void){
 	printk(KERN_INFO "Nao foi possivel obter o major number");
 	return resultado;
 	}
-
+ 
 	/*Printk - mensagens de I/O com o kernel*/
 	printk(KERN_INFO "Driver sendo inicializado \n");
 
