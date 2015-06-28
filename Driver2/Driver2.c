@@ -3,9 +3,13 @@
 #include <linux/fs.h> // required for various structures related to files liked fops. 
 #include <asm/uaccess.h> // required for copy_from and copy_to user functions 
 #include <linux/semaphore.h>
-#include <linux/cdev.h> 
+#include <linux/cdev.h>
+//#include "ioctl_basic.h"
+#include <linux/version.h> 
+
 static int Major;
 dev_t dev_no,dev;
+//long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg);
 struct device {
  char array[100];
  struct semaphore sem;
@@ -47,13 +51,25 @@ struct file_operations fops = {
  read:  read,
  write:  write,
  open:   open,
- release: release
+ release: release,
+
+//usados pelo ioctl para comunicacao
+ //unlocked_ioctl: ioctl_funcs
 };
 
+//funcao do ioctl
+/*long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg){
+int ret=0;
+switch(cmd) {
+case IOCTL_HELLO: 
+ printk(KERN_INFO "Hello ioctl world");
+ break;
+ } 
+return ret;
+}
+*/
 
 struct cdev *kernel_cdev;
-
-
 int char_arr_init (void) {
  int ret;
 
