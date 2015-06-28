@@ -4,12 +4,12 @@
 #include <asm/uaccess.h> // required for copy_from and copy_to user functions 
 #include <linux/semaphore.h>
 #include <linux/cdev.h>
-//#include "ioctl_basic.h"
+#include "ioctl_basic.h"
 #include <linux/version.h> 
 
 static int Major;
 dev_t dev_no,dev;
-//long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg);
+long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg);
 struct device {
  char array[100];
  struct semaphore sem;

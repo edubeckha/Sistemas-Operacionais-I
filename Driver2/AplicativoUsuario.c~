@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-
 main () {
         int i,fd;
         char ch, bufferEscrita[100], bufferLeitura[100];
@@ -28,6 +27,9 @@ main () {
                         read(fd, bufferLeitura, sizeof(bufferLeitura));
                         printf ("Os dados do dispositivo sao:  %s\n", bufferLeitura);
                         break;
+		case 'i':	
+			ioctl(fd,IOCTL_HELLO);
+			break;
 
                 default:
                         printf("Comando indefinido. \n");
