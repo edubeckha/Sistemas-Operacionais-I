@@ -1,24 +1,63 @@
 #include <linux/module.h>
+#include <linux/usb.h>
 #include <linux/kernel.h>
-#include <linux/fs.h> 
+#include <linux/fs.h>
 #include <asm/uaccess.h> 
 #include <linux/semaphore.h>
 #include <linux/cdev.h>
-#include "ioctl_basic.h"
 #include <linux/version.h> 
+#include <linux/serial.h>
+#include "ioctl_basic.h"
+#define USB_VENDOR_ID	0x0781 
+#define USB_PRODUCT_ID	0x5567
 
+//declaracoes
 static int Major;
 /*Data type que representa um par major/minor number*/
 dev_t dev_no,dev;
 long ioctl_funcs(struct file *filp,unsigned int cmd, unsigned long arg);
+struct file_operations fops;
+static struct usb_class_driver class;
 
+static int usbprobe(struct usb_interface *interface, const struct usb_device_id *id){
+	usb_register_dev(interface, &class); 
+	printk(KERN_INFO "USB esta plugado!");
+	return 0;
+}
+
+//disconnect device 
+static void disconnect(struct usb_interface *interface){
+	usb_deregister_dev(interface, &class);
+	printk(KERN_INFO "USB foi desplugado!");
+}
+
+static struct usb_device_id table[]={
+	//idVendor 03eb:0902 idProduct EPOS -> 0403:6001
+	{.driver_info = 42},
+	{USB_DEVICE(USB_VENDOR_ID,USB_PRODUCT_ID)}, 
+	{} //suportando somente um device
+};
+//necessario para avisar as ferramentas do user-space quais dispositivos esse driver pode controlar.
+MODULE_DEVICE_TABLE(usb, table);
+
+
+static struct usb_driver driver ={
+	.name = "Driver de Comunicacao entre dois PCs", //nomeando o driver
+	.id_table = table, //Combinar esse driver com qualquer dispositivo conectado ao USB //usb_device_id
+	.probe = usbprobe, //Chamado quando um device eh plugado no computador
+	.disconnect = disconnect
+};
+
+static struct usb_class_driver class ={
+	.name = "Dispositivo de comunicacao", 
+	.fops = &fops,
+};
 
 /*
 Struct que cria um novo dispositivo com um array associado. Esse array guarda uma mensagem enviada pelo usuario.
-
 O semaforo sem eh utilizado para tratar acesso concorrente ao dispositivo
 */
-struct device {
+struct dev {
  char array[100];
  struct semaphore sem;
 }char_arr;
@@ -33,6 +72,7 @@ Somente um processo pode abrir o semaforo por vez
 int open(struct inode *inode, struct file *filp)
 {
  printk(KERN_INFO "Abrindo dispositivo\n");
+
  if(down_interruptible(&char_arr.sem)) {
   printk(KERN_INFO "Problemas com o semaforo");
   return -1;
@@ -57,8 +97,6 @@ ssize_t read(struct file *filp, char *buff, size_t count, loff_t *offp) {
 
 /*
 Funcao que escreve o que foi escrito na aplicacao do usuario e passa para o array do device
-
-
 */
 ssize_t write(struct file *filp, const char *buff, size_t count, loff_t *offp) { 
  unsigned long ret;
@@ -70,7 +108,6 @@ ssize_t write(struct file *filp, const char *buff, size_t count, loff_t *offp) {
 /*
 Funcao que libera o driver
 */
-
 int release(struct inode *inode, struct file *filp) {
  printk (KERN_INFO "Tentando fechar o driver\n");
  printk(KERN_INFO "Liberando semaforo");
@@ -112,20 +149,20 @@ Funcao chamada no momento que inserimos o modulo no kernel.
 */
 int iniciar(void) {
  int ret;
+ ret = usb_register(&driver);
+if(ret == -1)
+printk(KERN_INFO "Erro ao registrar o usb");
  //inicializa o kernel_cdev
  kernel_cdev = cdev_alloc();
 //Aloca o fops na estrutura do cdev 
  kernel_cdev->ops = &fops;
  kernel_cdev->owner = THIS_MODULE;
  printk ("Tentando inicializar o Driver.\n");
-
 //Aloca um major number dinamicamente para o nodo
 //recebe um data type, um firstMinor, onde temos somente um, 
 //um count de major numbers que serao alocados e um nome para os 
 //major numbers alocados
   ret = alloc_chrdev_region(&dev_no , 0, 1,"dispositivo");
-
-
 //Verifica se o alloca_chrdev_region falhou em alocar um major number
 if (ret < 0) {
   printk("Nao foi possivel alocar um novo Major Number\n");
@@ -141,7 +178,7 @@ if (ret < 0) {
 
  //Adiciona a estrutura no kernel
  ret = cdev_add(kernel_cdev,dev,1);
- if(ret < 0 )
+ if(ret < 0)
  {
  printk(KERN_INFO "Impossivel alocar um cdev");
  return ret;
@@ -149,13 +186,15 @@ if (ret < 0) {
  return 0;
 }
 
+
+
 /*
 Funcao chamada quando o driver eh retirado do kernel
 */
 void cleanup(void) {
  //deleta a estrutura alocada no kernel
  cdev_del(kernel_cdev);
- unregister_chrdev_region(Major, 1);
+ usb_deregister(&driver);
  printk(KERN_INFO "O modulo foi retirado do kernel\n");
 }
 
