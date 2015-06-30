@@ -1,0 +1,1 @@
+cmd_/home/beckhauser/Desktop/UltimoTrabalhoSO/Driver+USBDRIVER/Driver2.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/beckhauser/Desktop/UltimoTrabalhoSO/Driver+USBDRIVER/Driver2.ko /home/beckhauser/Desktop/UltimoTrabalhoSO/Driver+USBDRIVER/Driver2.o /home/beckhauser/Desktop/UltimoTrabalhoSO/Driver+USBDRIVER/Driver2.mod.o

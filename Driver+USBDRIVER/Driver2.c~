@@ -8,8 +8,8 @@
 #include <linux/version.h> 
 #include <linux/serial.h>
 #include "ioctl_basic.h"
-#define USB_VENDOR_ID	0x0781 
-#define USB_PRODUCT_ID	0x5567
+#define USB_VENDOR_ID	0x0403
+#define USB_PRODUCT_ID	0x6001
 
 //declaracoes
 static int Major;
@@ -20,20 +20,19 @@ struct file_operations fops;
 static struct usb_class_driver class;
 
 static int usbprobe(struct usb_interface *interface, const struct usb_device_id *id){
+	printk(KERN_INFO "USB esta plugado!");	
 	usb_register_dev(interface, &class); 
-	printk(KERN_INFO "USB esta plugado!");
 	return 0;
 }
 
-//disconnect device 
+//Chamada quando o dispositivo eh desconectado 
 static void disconnect(struct usb_interface *interface){
-	usb_deregisterasdqasd_dev(interface, &class);
 	printk(KERN_INFO "USB foi desplugado!");
+	usb_deregister_dev(interface, &class);	
 }
 
 static struct usb_device_id table[]={
 	//idVendor 03eb:0902 idProduct EPOS -> 0403:6001
-	{.driver_info = 42},
 	{USB_DEVICE(USB_VENDOR_ID,USB_PRODUCT_ID)}, 
 	{} //suportando somente um device
 };
@@ -49,7 +48,7 @@ static struct usb_driver driver ={
 };
 
 static struct usb_class_driver class ={
-	.name = "Dispositivo de comunicacao", 
+	.name = "EposMote", 
 	.fops = &fops,
 };
 
@@ -109,7 +108,6 @@ ssize_t write(struct file *filp, const char *buff, size_t count, loff_t *offp) {
 Funcao que libera o driver
 */
 int release(struct inode *inode, struct file *filp) {
- printk (KERN_INFO "Tentando fechar o driver\n");
  printk(KERN_INFO "Liberando semaforo");
  up(&char_arr.sem);
  return 0;
@@ -158,6 +156,7 @@ printk(KERN_INFO "Erro ao registrar o usb");
  kernel_cdev->ops = &fops;
  kernel_cdev->owner = THIS_MODULE;
  printk ("Tentando inicializar o Driver.\n");
+
 //Aloca um major number dinamicamente para o nodo
 //recebe um data type, um firstMinor, onde temos somente um, 
 //um count de major numbers que serao alocados e um nome para os 
@@ -186,8 +185,6 @@ if (ret < 0) {
  return 0;
 }
 
-
-
 /*
 Funcao chamada quando o driver eh retirado do kernel
 */
@@ -197,7 +194,6 @@ void cleanup(void) {
  usb_deregister(&driver);
  printk(KERN_INFO "O modulo foi retirado do kernel\n");
 }
-
 
 MODULE_LICENSE("GPL"); 
 

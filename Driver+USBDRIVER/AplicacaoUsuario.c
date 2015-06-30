@@ -5,7 +5,7 @@ main () {
         int i,fd;
         char ch, bufferEscrita[100], bufferLeitura[100];
 
-        fd = open("/dev/disp1", O_RDWR);
+        fd = open("/dev/EposMote", O_RDWR);
 
         if (fd == -1)
         {
